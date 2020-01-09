@@ -55,7 +55,7 @@
 
 Name:           ant
 Version:        1.7.1
-Release:        13%{?dist}
+Release:        15%{?dist}
 Epoch:          0
 Summary:        Ant build tool for java
 Summary(it):    Tool per la compilazione di programmi java
@@ -97,6 +97,7 @@ Patch2:         apache-ant-gnu-classpath.patch
 Patch3:         apache-ant-no-test-jar.patch
 Patch4:         apache-ant-class-path-in-manifest.patch
 Patch5:         apache-ant-package-info-bz43114.patch
+Patch6:         apache-ant-java9-support.patch
 
 BuildRequires:  jpackage-utils >= 0:1.7.5
 BuildRequires:  java-devel >= 0:1.5.0
@@ -469,6 +470,8 @@ Scripts additionels pour %{name}.
 %package manual
 Summary:        Manual for %{name}
 Group:          Documentation
+# tutorial-tasks-filesets-properties.zip contains ASL 1.1 files
+License:        ASL 2.0 and ASL 1.1
 
 %description manual
 Documentation for %{name}.
@@ -511,6 +514,9 @@ sed -i -e "s|IMAGE_FILE_TYPE|BINARY_FILE_TYPE|g" src/main/org/apache/tools/ant/t
 %patch4 -p0
 
 %patch5 -p0
+
+# Add support for Java 1.6 through 1.9
+%patch6 -p0
 
 # clean jar files
 find . -name "*.jar" | %{_bindir}/xargs -t rm
@@ -560,7 +566,7 @@ sh ./build.sh --noconfig jars
 rm -rf $RPM_BUILD_ROOT
 
 # ANT_HOME and subdirs
-mkdir -p $RPM_BUILD_ROOT%{ant_home}/{lib,etc}
+mkdir -p $RPM_BUILD_ROOT%{ant_home}/{lib,etc,bin}
 
 # jars
 install -d -m 755 $RPM_BUILD_ROOT%{_javadir}
@@ -675,6 +681,8 @@ cp -p src/script/* $RPM_BUILD_ROOT%{_bindir}
 %else
 cp -p src/script/ant{,Run} $RPM_BUILD_ROOT%{_bindir}
 %endif
+ln -sf %{_bindir}/ant $RPM_BUILD_ROOT%{ant_home}/bin/
+ln -sf %{_bindir}/antRun $RPM_BUILD_ROOT%{ant_home}/bin/
 
 # default ant.conf
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
@@ -1060,6 +1068,9 @@ fi
 %{_javadir}/%{name}-bootstrap-%{version}.jar
 %dir %{_javadir}/%{name}
 %dir %{ant_home}
+%dir %{ant_home}/bin
+%{ant_home}/bin/ant
+%{ant_home}/bin/antRun
 %dir %{ant_home}/etc
 %{ant_home}/etc/ant-update.xsl
 %{ant_home}/etc/changelog.xsl
@@ -1317,6 +1328,16 @@ fi
 # -----------------------------------------------------------------------------
 
 %changelog
+* Tue Jan 19 2016 Michael Simacek <msimacek@redhat.com> - 0:1.7.1-15
+- Fix license of manual subpackage
+
+* Tue Jan 19 2016 Michael Simacek <msimacek@redhat.com> - 0:1.7.1-15
+- Fix antRun script
+
+* Fri Nov 27 2015 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:1.7.1-14
+- Implement detection of Java 7 through 9
+- Resolves: rhbz#1104813
+
 * Mon Apr 26 2010 Jeff Johnston <jjohnstn@redhat.com> - 0:1.7.1-13
 - Resolves: #585941
 - Added apache-ant-package-info-bz43114.patch
